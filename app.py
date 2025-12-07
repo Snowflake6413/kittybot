@@ -1,4 +1,5 @@
 import os
+import time
 import requests
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
@@ -9,7 +10,7 @@ SLACK_APP_TOKEN = os.environ.get('SLACK_APP_TOKEN')
 app = App(token=SLACK_BOT_TOKEN)
 
 @app.command("/catimage")
-def repeat_text(ack, say):
+def cat_img(ack, say):
     ack()
     response = requests.get("https://api.thecatapi.com/v1/images/search")
     
@@ -39,7 +40,7 @@ def repeat_text(ack, say):
         say("Sorry, no cats found right now.")
         
 @app.command("/catfact")
-def repeat_text(ack, say):
+def cat_fact(ack, say):
     ack()
     response = requests.get("https://catfact.ninja/fact")
 
@@ -114,6 +115,46 @@ def get_info(ack, respond):
 	]
 
     respond(blocks=blocks)
+@app.message("meow")
+def hug_react(message,client):
+    print("MEOW!")
+    try:
+        client.reactions_add(
+            channel=message["channel"],
+            timestamp=message["ts"],
+            name="cat-okay"
+        )
+    except Exception as e:
+        print(f"Something with wrong with the reacion. {e}")
+
+
+@app.command("/catgif") 
+def cat_gif(ack, respond):
+    ack()
+    cooley_gif = f"https://cataas.com/cat/gif?t={time.time()}"
+
+    respond(
+        response_type="in_channel",
+        blocks=[
+            
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "Here is a kitty gif! :neocat:"
+                }
+            },  
+            
+            
+            {
+                "type": "image",
+                "image_url": cooley_gif,
+                "alt_text": "A random cat gif"
+            }
+        ]
+    )
+
+    
 
 if __name__ == "__main__":
     SocketModeHandler(app, os.environ["SLACK_APP_TOKEN"]).start()
