@@ -1,11 +1,27 @@
-import os
 import time
+import os
 import requests
+from openai import OpenAI
+from dotenv import load_dotenv
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 
-SLACK_BOT_TOKEN = os.environ.get('SLACK_BOT_TOKEN')
-SLACK_APP_TOKEN = os.environ.get('SLACK_APP_TOKEN')
+print("Running...")
+
+load_dotenv()
+
+
+
+SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
+SLACK_APP_TOKEN = os.getenv('SLACK_APP_TOKEN')
+OAI_KEY = os.getenv('OAI_KEY')
+OAI_BASE_URL= os.getenv('OAI_BASE_URL')
+LLM_MODEL = os.getenv('LLM_MODEL')
+
+client = OpenAI(
+            api_key=OAI_KEY,
+            base_url=OAI_BASE_URL
+        )
 
 app = App(token=SLACK_BOT_TOKEN)
 
@@ -115,18 +131,6 @@ def get_info(ack, respond):
 	]
 
     respond(blocks=blocks)
-@app.message("meow")
-def hug_react(message,client):
-    print("MEOW!")
-    try:
-        client.reactions_add(
-            channel=message["channel"],
-            timestamp=message["ts"],
-            name="cat-okay"
-        )
-    except Exception as e:
-        print(f"Something with wrong with the reacion. {e}")
-
 
 @app.command("/catgif") 
 def cat_gif(ack, respond):
@@ -154,7 +158,33 @@ def cat_gif(ack, respond):
         ]
     )
 
-    
+@app.event("app_mention")
+def ai_mention(event, say, body, logger):
+    logger.info("Moshi moshi! Got Message!")
+    logger.info(body)
+    user_msg= event ['text']
+    thread_ts = event.get("thread_ts", event["ts"])
+    try:
+        response = client.chat.completions.create(
+            model=LLM_MODEL,
+            messages=[
+            {
+                "role": "system",
+                "content": "You are a helpful assistant who speaks like a kitty."
+            },
+            {"role" : "user", "content": user_msg}
+            ],
+            max_tokens=150
+        )
+
+        ai_reply= response.choices[0].message.content
+        say(text=f"{ai_reply}", thread_ts=thread_ts)
+
+    except Exception as e:
+        print("Unable to call OpenAI {e}")
+        say(text=f"Oops! Unable to get a response from OpenAI.", thread_ts=thread_ts)
+
+  
 
 if __name__ == "__main__":
     SocketModeHandler(app, os.environ["SLACK_APP_TOKEN"]).start()
