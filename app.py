@@ -313,7 +313,7 @@ def ai_mention(event, say, body, logger, client):
         response = chat_client.chat.completions.create(
             model=LLM_MODEL,
             messages=conversation_context,
-            max_tokens=150
+            max_tokens=500
         )
          
         ai_reply= response.choices[0].message.content
