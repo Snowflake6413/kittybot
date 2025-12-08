@@ -40,6 +40,8 @@ I used different types of APIs in this project. Here is a list of them!
 * Python (JAVASCRIPT DROOLS)
 * OpenAI SDK
 * [OpenWeatherMap](https://openweathermap.org/)
+* [CatAAS](https://cataas.com)
+* [The Cat API](https://thecatapi.com)
 
 
 
