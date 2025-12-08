@@ -107,7 +107,7 @@ def weather_in_cat_city(ack, respond, command):
         respond(blocks=blocks)
     
     except Exception as e:
-     print("oOPS!")
+     print("Unable to send weather info. {e}")
 
 @app.command("/help")
 def bot_help(ack, respond):
