@@ -72,9 +72,8 @@ def cat_img(ack, say, command):
             blocks=[{
                     "type": "header",
                     "text": {
-                        "type": "plain_text",
+                        "type": "mrkdwn",
                         "text": f"Here is your cute kitty, <@{user_id}>! :neocat_3c: (ID: {cat_id})", 
-                        "emoji": True
                     }
                 },
                 {
@@ -153,9 +152,8 @@ def cat_fact(ack, say, command):
         blocks=[{
 			"type": "section",
 			"text": {
-				"type": "plain_text",
+				"type": "mrkdwn",
 				"text": f"Here is your cat fact, <@{user_id}>! :neocat:",
-				"emoji": True
 			}
 		},
 		{
