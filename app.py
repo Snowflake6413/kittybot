@@ -218,12 +218,12 @@ def get_info(ack, respond):
     respond(blocks=blocks)
 
 @app.command("/catgif") 
-def cat_gif(ack, respond, command):
+def cat_gif(ack, say, command):
     ack()
     user_id = command["user_id"]
     cooley_gif = f"https://cataas.com/cat/gif?t={time.time()}"
 
-    respond(
+    say(
         response_type="in_channel",
         blocks=[
             
