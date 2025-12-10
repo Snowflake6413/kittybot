@@ -87,45 +87,6 @@ def cat_img(ack, say):
     else:
         say("Sorry, no cats found right now.")
 
-@app.command("/weather")
-def weather_in_cat_city(ack, say, command):
-    ack()
-    city = command.get('text', '').strip() or 'Istanbul'
-
-    try: 
-        url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={WEATHER_API_KEY}&units=metric"
-        response = requests.get(url)
-
-        if response.status_code == 200:
-         data = response.json()
-        temp = data['main']['temp']
-        feels_like = data['main']['feels_like']
-        description = data['weather'][0]['description']
-        humidity = data['main']['humidity']
-        wind_speed = data['wind']['speed']
-
-        blocks = [
-            {
-	
-			"type": "section",
-			"text": {
-				"type": "plain_text",
-				"text": f"🌤️ Weather in {city}",
-				"emoji": True
-			}
-		},
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": f"*Temperature:* {temp}°C (feels like {feels_like}°C)\n*Condition:* {description.title()}\n*Humidity:* {humidity}%\n*Wind Speed:* {wind_speed} m/s"
-			}
-		}
-	]
-        say(blocks=blocks)
-    
-    except Exception as e:
-     print(f"Unable to send weather info. {e}")
 
 @app.command("/help")
 def bot_help(ack, respond):
@@ -281,7 +242,7 @@ def cat_gif(ack, respond):
     )
 
 @app.event("app_mention")
-def ai_mention(event, say, body, logger, client):
+def ai_mention(event, say, body, logger, client, respond):
     logger.info("Moshi moshi! Got Message!")
     logger.info(body)
     user_msg= event['text']
@@ -303,7 +264,7 @@ def ai_mention(event, say, body, logger, client):
         
         moderation = moderation_client.moderations.create(input=user_msg)
         if moderation.results[0].flagged:
-            say(
+            respond(
                 text=f"Meow! :sadcat: I am unable to respond due to your message containing flagged content! Please try again with a new message!", thread_ts=thread_ts
         ) 
             return
