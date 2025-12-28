@@ -61,7 +61,7 @@ app = App(token=SLACK_BOT_TOKEN)
 def cat_img(ack, say, command):
     ack()
     user_id = command["user_id"]
-    response = requests.get("https://api.thecatapi.com/v1/images/search")
+    response = requests.get("https://api.thecatapi.com/v1/images/search", timeout=10)
     
     if response.status_code == 200:
         data = response.json()
@@ -93,7 +93,7 @@ def cat_img(ack, say, command):
 
 @app.command("/help")
 def bot_help(ack, respond):
-    
+    ack()
     blocks=[{
 
 		
@@ -145,7 +145,7 @@ def bot_help(ack, respond):
 def cat_fact(ack, say, command):
     ack()
     user_id = command["user_id"]
-    response = requests.get("https://catfact.ninja/fact")
+    response = requests.get("https://catfact.ninja/fact", timeout=10)
 
     if response.status_code == 200:
      data = response.json()
@@ -253,7 +253,6 @@ def ai_mention(event, say, body, logger, client, respond):
     thread_ts = event.get("thread_ts", event["ts"])
     channel_id = event["channel"]
     message_ts = event["ts"]
-    original_text=event['text']
     
     try:
         client.reactions_add(
@@ -273,26 +272,31 @@ def ai_mention(event, say, body, logger, client, respond):
         ) 
             return
         
-        
-        memory = client.conversations_replies(
-            channel=channel_id,
-            ts=thread_ts,
-            limit = 10
-        )
-
-        memory_data = memory['messages']
-
         conversation_context = [
             {"role": "system", "content":"Act as a helpful cat assistant. Be cute, use cat puns/sounds/emojis, address user as 'Hooman', and describe actions in italics (*purrs*). maintain persona while being useful."
 }
         ]
+        
+        # Only fetch thread history if this is actually a thread (not the first message)
+        if thread_ts != message_ts:
+            memory = client.conversations_replies(
+                channel=channel_id,
+                ts=thread_ts,
+                limit = 10
+            )
 
-        for msg in memory_data:
-            text = msg.get("text")
-            if "bot_id" in msg:
-             conversation_context.append({"role": "assistant", "content": text})
-            else:
-               conversation_context.append({"role": "user", "content": text})
+            memory_data = memory['messages']
+
+            for msg in memory_data:
+                text = msg.get("text")
+                if text:  # Only process messages with text
+                    if "bot_id" in msg:
+                        conversation_context.append({"role": "assistant", "content": text})
+                    else:
+                        conversation_context.append({"role": "user", "content": text})
+        else:
+            # First message in thread, just add the current user message
+            conversation_context.append({"role": "user", "content": user_msg})
 
         response = chat_client.chat.completions.create(
             model=LLM_MODEL,
